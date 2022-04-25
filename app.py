@@ -11,6 +11,7 @@ import ibm_db_sa
 
 # 2do - creamos un objeto de tipo flask
 app = Flask(__name__)
+app.run(debug=True)
 
 # APLICAR CONFIG DE DB2
 app.config['DB2_DATABASE'] = 'testdb'
@@ -35,7 +36,7 @@ def servicio_default():
     cur = db.connection.cursor()
 
     # con cursor hecho podemos ejecutar queries
-    cur.execute("SELECT * FROM gatitos")
+    cur.execute("SELECT * FROM tarjetas")
 
     # obtenemos datos
     data = cur.fetchall()
@@ -51,72 +52,37 @@ def servicio_default():
     for current in data:
         actual = {
             "id" : current[0],
-            "nombre" : current[1],
-            "peso" : current[2]
+            "texto" : current[1],
+            "name" : current[2]
         }
         resultado.append(actual)
 
     return jsonify(resultado)
 
-# podemos tener todas las rutas
-@app.route("/segunda")
-def segunda_ruta():
-    engine = sqlalchemy.create_engine("ibm_db_sa://db2inst1:hola@localhost:50000/testdb")
-    connection = engine.connect()
-    metadata = sqlalchemy.MetaData()
-    gatitos = Table('gatitos', metadata,
-        Column('id', Integer, primary_key=True),
-        Column('nombre', String(150), nullable=False),
-        Column('peso', Integer, nullable=False)
-    )
 
-    query = sqlalchemy.select([gatitos])
-    cursor = connection.execute(query)
-    resultados = cursor.fetchall()
+@app.route("/getData/<int:ID>", methods=["GET"])
+def getByID(ID):
+    cur = db.connection.cursor()
+    # con cursor hecho podemos ejecutar queries
+    cur.execute(f"SELECT * FROM tarjetas WHERE id={escape(ID)};")
 
-    print(resultados, file=sys.stdout)
+    # obtenemos datos
+    data = cur.fetchall()
 
-    return "<h1>UNA SEGUNDA RUTA</h1>"
+    # acuerdate de cerrar el cursor
+    cur.close()
 
-# podemos recibir variables a través de URL
-# f-string formatting
-# &eacute; & e acute; - e con acento agudo
-# ataque por inyección de código
-@app.route("/nombre/<el_nombre>/<el_apellido>")
-def nombre(el_nombre, el_apellido):
-    return f"Hola {escape(el_nombre)} {escape(el_apellido)}, espero que est&eacute;s bien."
+    print(data, file=sys.stdout)
 
-# converters 
-@app.route("/entero/<int:valor>")
-def entero(valor):
-    return f"el valor que mandaste fue: {escape(valor)}"
+    # puedes checar alternativas para mapeo de datos
+    # por hoy vamos a armar un objeto jsoneable para regresar 
+    resultado = []
+    for current in data:
+        actual = {
+            "id" : current[0],
+            "texto" : current[1],
+            "name" : current[2]
+        }
+        resultado.append(actual)
 
-@app.route("/ruta/<path:valor>")
-def ruta(valor):
-    return f"la ruta que mandaste fue: {escape(valor)}"
-
-# LO QUE VAMOS A REGRESAR GENERALMENTE VA A SER JSON
-# ventaja de flask - regresar un diccionario de python se jsonifica
-
-diccionario = {
-    "nombre" : "Garfiol",
-    "edad" : 30,
-    "peso" : 64
-}
-
-@app.route("/json")
-def json():
-    return diccionario
-
-# se puede discriminar por medio de método de request de HTTP
-# (GET, POST, PUT, DELETE)
-
-@app.route("/metodo", methods=["GET", "POST"])
-def metodo_get_post():
-    return "REQUEST HECHA POR GET O POST"
-
-@app.route("/metodo", methods=["PUT", "DELETE"])
-def metodo_put_delete():
-    return "REQUEST HECHA POR PUT O DELETE"
-
-# EXTENSION DE VS CODE - THUNDERCLIENT
+    return jsonify(resultado)

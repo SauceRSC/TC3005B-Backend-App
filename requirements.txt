@@ -1,0 +1,6 @@
+flask
+markupsafe
+flask_db2
+flask_cors
+sqlalchemy
+ibm_db_sa
