@@ -1,15 +1,12 @@
-# este es un comentario
-#1ero - importar código necesario
+#Importar lo que necesitamos
 from flask import Flask, jsonify
 from markupsafe import escape
 from flask_db2 import DB2
 import sys 
 from flask_cors import CORS
-import sqlalchemy
 from sqlalchemy import *
-import ibm_db_sa
 
-# 2do - creamos un objeto de tipo flask
+#Crear objeto Flask y correr en modo debug
 app = Flask(__name__)
 app.run(debug=True)
 
@@ -21,18 +18,15 @@ app.config['DB2_PROTOCOL'] = 'TCPIP'
 app.config['DB2_USER'] = 'db2inst1'
 app.config['DB2_PASSWORD'] = 'hola'
 
+#Hacer conexion con db
 db = DB2(app)
 
+#CORS para que nos permita hacer los fetch desde el front
 CORS(app)
 
-# 3ero - al objeto de tipo flask le agregamos rutas
-# @ en python significa que vamos a usar un decorator
-# https://en.wikipedia.org/wiki/Decorator_pattern
-
+#Se crea la ruta por defecto 
 @app.route("/")
 def servicio_default():
-
-    # lo primero es obtener cursor 
     cur = db.connection.cursor()
 
     # con cursor hecho podemos ejecutar queries
@@ -44,10 +38,7 @@ def servicio_default():
     # acuerdate de cerrar el cursor
     cur.close()
 
-    print(data, file=sys.stdout)
-
-    # puedes checar alternativas para mapeo de datos
-    # por hoy vamos a armar un objeto jsoneable para regresar 
+    # Se hace objeto json de los datos que nos arroja la query
     resultado = []
     for current in data:
         actual = {
@@ -57,9 +48,10 @@ def servicio_default():
         }
         resultado.append(actual)
 
+    #se regresa el objeto como json
     return jsonify(resultado)
 
-
+#Se crea la ruta con metodo GET y que recibe una variable en el url ID
 @app.route("/getData/<int:ID>", methods=["GET"])
 def getByID(ID):
     cur = db.connection.cursor()
@@ -72,10 +64,7 @@ def getByID(ID):
     # acuerdate de cerrar el cursor
     cur.close()
 
-    print(data, file=sys.stdout)
-
-    # puedes checar alternativas para mapeo de datos
-    # por hoy vamos a armar un objeto jsoneable para regresar 
+    # Se hace objeto json de los datos que nos arroja la query
     resultado = []
     for current in data:
         actual = {
@@ -85,4 +74,5 @@ def getByID(ID):
         }
         resultado.append(actual)
 
+    #se regresa el objeto como json
     return jsonify(resultado)
