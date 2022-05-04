@@ -2,13 +2,12 @@
 from flask import Flask, jsonify
 from markupsafe import escape
 from flask_db2 import DB2
-import sys 
 from flask_cors import CORS
 from sqlalchemy import *
+from flask_login import LoginManager
 
 #Crear objeto Flask y correr en modo debug
 app = Flask(__name__)
-app.run(debug=True)
 
 # APLICAR CONFIG DE DB2
 app.config['DB2_DATABASE'] = 'testdb'
